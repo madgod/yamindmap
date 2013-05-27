@@ -2,6 +2,7 @@
 import os
 from pygame import *
 import time
+# такие пакеты уже могут быть. Нужно создать уникальное имя пакета
 import openform
 import saveform
 import confirm
@@ -30,6 +31,7 @@ sc.fill(wh)
 Font2=font.Font(None,24)#Courier New
 Font3=font.Font(None,14)#Courier New
 # Font2=font.SysFont('couriernew', 14, bold=True, italic=False)
+display.flip()
 
 """
 Задача: откоментировать
@@ -71,15 +73,93 @@ Font3=font.Font(None,14)#Courier New
 Нужно будет помнить все функции и какие аргументы они используют. Это чертовски много информации.
 
 
+Итак, все функции, в которых есть а и мумап нужно переделать на методы класса мумап и использовать не А а фокус-объект
+возможно, приравнять а и фокус объект для краткости
+
+при вызове функции не надо писать self в аргументах
+при вызове функции метода надо писать перед именем функции self
+метод не может вызвать функцию верхнего уровня
+
+
+можно ли делать методы у текстбокса? или использовать универсальный текстбокс из пакета пигуи?
+у меня не просто текстбокс а с окружностью
+зачем мне окружность?
+можно соединять с центром или краем объекта
+перетаскивать за объект.
+Окружность не так и нужна. Назначение окружности неясно
+в окружности текст не смотрится
+можно использовать прямоугольник с закругленными углами
+
+какие методы должны быть у текстбокса?
+контроллер клавиатуры
+функции рисования
+изменения рамки, текста
+
+расположение текстбокса зависит от списка координат на карте
+а это уже задача карты как контейнера
+карта - это контейнер для элементов
+
+пользуясь информацией из контейнера можно программировать модель
+которая должна быть отделена и от текстбоксов и от их контейнера
+мы храним все текстбоксы в контейнерах
+
 
 
 """
 
+""" Ошибки
+-при скрытии миникарты не рисуются линии
+какая функция там используется?
+"""
+
+""" Задачи
+Перевести все аргументы в функциях типа (а)
+в self.Focus или типа того
+Сделать одну форму вместо сохранить и загрузить
+разные надписи и разные проверки на разрешение выйти из формы
+
+Первая открытая карта должна быть лучше.
+
+Нужны стрелки от А к В
+
+Убрать окружности?
+Пока они мне нравятся. Как шарниры. Можно будет присоединять
+просто к шарнирам
+
+
+Форма-билдер форм
+вывести компоненты
+фокус - -1 или прошлый нажатый компонент
+
+порождать на экране нужный компонент
+удалять при выборе переключателя "удалить"
+передвигать, изменять размер
+назначать внутреннее имя, записывать в список ректов и ИД
+
+сохранять в файл в формате CSS
+
+Писать контроллер отдельно, загрузив компоненты из файла
+(попытка объединить CSS и JS, или скорее Python)
+
+Зная имя компонента, которое мы задали мы прописываем желаемое поведение, и связываем с этим поведением дальнейшие действия.
+
+Всегда ли такое поведение будет одинаковое?
+Можно заменять функции из некоторого набора возможных функций
+
+При одних условиях-флагах компоненты могут вести себя так, при других - иначе.
+
+Анимация, изменения текста, появление исчезание, смена цвета, блокировка на измнение.
 
 
 
+
+
+
+
+
+"""
 ramka=0
-if ramka==1:
+if ramka:
 	for i in range(0,1024,64):
 		draw.line(sc,bl,(i,0),(i,768),1)
 	for i in range(0,768,64):
@@ -159,7 +239,6 @@ class MyMap:
 		self.FlagInsideHotPoint=False
 		self.FlagTakeMap=False
 		self.FlagTakeObj=False
-	
 	def TryCreateObject(self,a):
 		# print "TryCreateObject"
 		self.ConsistList=[]
@@ -199,7 +278,6 @@ class MyMap:
 		for i in range(i2,i4+1):
 			for j in range(i1,i3+1):
 				self.ConsistList.append((i,j))
-	
 	def GetIntersectList(self,a,b):# без рендера
 		# возвращает, есть ли ячейки в которых А пересекается с Б
 		# print "GetIntersectList"
@@ -232,7 +310,6 @@ class MyMap:
 				flag=True
 				break
 		return flag
-		
 	def IsCellExist(self,yk,xk):# без рендера
 		# проверяет, есть ли такая ячейка а Л1
 		# print "IsCellExist"
@@ -249,7 +326,6 @@ class MyMap:
 		else:# нет такой строки
 			pass
 		return flag
-			# первая причина несуществования ячейки
 	def CreateCell(self,yk,xk):# без рендера
 		# создает ячейку в Л1 (или список ячеек с координатами Х У)
 		# print "CreateCell"
@@ -264,8 +340,6 @@ class MyMap:
 		else:# нет такой строки
 			self.MapList[yk]={}
 			self.MapList[yk][xk]=[]
-			
-		
 	def PutObject(self,a):# без рендера
 		# помещает объект по списку ячеек
 		# print "PutObject"
@@ -281,9 +355,8 @@ class MyMap:
 				a.text=['']
 				self.MapList[yk][xk].append(self.ObjectList.index(a))
 				self.Focus=a
-		DrawObject(a,self)
+		self.DrawObject(a)
 		self.NeedUpdate=True
-
 	def Save(self):
 		# print "Save"
 		if self.SAVEPATH=='':
@@ -320,7 +393,6 @@ class MyMap:
 			f1.close()
 			f1.close()
 			print "saved"
-
 	def QuickSave(self):
 		# print "QuickSave"
 		if self.SAVEPATH=='':
@@ -355,518 +427,521 @@ class MyMap:
 				f1.write(txt)
 			f1.close()
 			print "saved"
-	
-	def deb_text(self):
-		pass
-
-def DrawMenu(mymap):#
-	# print "DrawMenu"
-	surf=Surface((sc.get_width(),50))
-	color=(240,240,240)
-	surf.fill(color)
-	mymap.sc.blit(surf,(0,0))
-	mymap.NeedUpdate=True
-
-def DrawCursor(a,color,mymap):# Textedit перерисовать курсор
-	# print "DrawCursor"
-	if a.soft_y<=len(a.text)-1:
-		text=a.text[a.soft_y][:a.soft_x]
-		hard_x=Font2.render(text,1,fc,wh).get_width()
-		hard_y=a.ry+2+a.soft_y*17-mymap.Rel_y
-		draw.line(mymap.Back,color,(2+a.rx+hard_x-mymap.Rel_x,hard_y+4),(a.rx+2+hard_x-mymap.Rel_x,hard_y+13),1)
-		mymap.NeedUpdate=True
-
-def DrawTextLine(a,mymap):# Textedit  # рисуем текущую линию текста
-	# print "DrawTextLine"
-	text=a.text[a.soft_y]
-	text_surf=Font2.render(text,1,fc,wh)
-	x=a.rx+2-mymap.Rel_x
-	y=a.ry+2+a.soft_y*17-mymap.Rel_y
-	mymap.sc.blit(text_surf,(x,y))
-
-def DrawChar(a,mymap):# Textedit # вывести символ на экран (нужна интерактивность а скорость набора разная)
-	text=a.text[a.soft_y][:a.soft_x]
-	text_surf=Font2.render(text,1,fc,wh)
-	
-	if a.w_clear!=0:
+	def DrawCursor(self,a,color):# Textedit перерисовать курсор
+		# print "DrawCursor"
+		if a.soft_y<=len(a.text)-1:
+			text=a.text[a.soft_y][:a.soft_x]
+			hard_x=Font2.render(text,1,fc,wh).get_width()
+			hard_y=a.ry+2+a.soft_y*17-self.Rel_y
+			draw.line(self.Back,color,(2+a.rx+hard_x-self.Rel_x,hard_y+4),(a.rx+2+hard_x-self.Rel_x,hard_y+13),1)
+			self.NeedUpdate=True
+	def DrawTextLine(self,a):# Textedit  # рисуем текущую линию текста
+		# print "DrawTextLine"
 		text=a.text[a.soft_y]
 		text_surf=Font2.render(text,1,fc,wh)
-		# высота поверхности 17
-		x=a.rx+2-mymap.Rel_x
-		y=a.ry+2+a.soft_y*17-mymap.Rel_y
-		CalcMaxW(a,mymap)
-		s2=Surface((a.w_clear,17))
-		s2.fill(wh)
-		mymap.sc.blit(s2,(x,y))
-		mymap.sc.blit(text_surf,(x,y))
-		mymap.NeedUpdate=True
-		DrawCursor(a,bl,mymap)
-	else:
-		x=a.rx+2-mymap.Rel_x
-		y=a.ry+2+a.soft_y*17-mymap.Rel_y
-		CalcMaxW(a,mymap)
-		mymap.sc.blit(text_surf,(x,y))
-		DrawCursor(a,bl,mymap)
-		mymap.NeedUpdate=True
-
-def GetTextWidth(text):# Вычисляемое - используется для поиска положения курсора в строке путем перебора от начала строки
-	# print "GetTextWidth"
-	w = Font2.render(text,1,fc,wh).get_width()
-	return w
-
-def CalcMaxW(a,mymap):
-	# print "CalcMaxW"
-	a.MaxW=0
-	for i in range(0,len(a.text)):
-		w=GetTextWidth(a.text[i])
-		if w>a.MaxW:
-			a.MaxW=w
-	ChangeBorder(a,mymap)
-	DrawBorder(a,bl,mymap)
-	CorrectMap(a,mymap)
-
-def ChangeBorder(a,mymap):# Textedit 
-	# print "ChangeBorder"
-	a.h=len(a.text)*17+4
-	a.w=a.MaxW+4
-
-def CorrectMap(a,mymap):# без рендера
-	# print "CorrectMap"
-	TempConsistList=[]
-	mymap.GetCellList(a)
-	TempConsistList=mymap.ConsistList
-	TempDelList=[]
-	TempAppendList=[]
-	TempDelList=GetTempDelList(a.ConsistList,TempConsistList)
-	TempAppendList=GetTempAppendList(a.ConsistList,TempConsistList)
-	DelFromMap(TempDelList,a,mymap)
-	AppendOnMap(TempAppendList,a,mymap)
-	a.ConsistList=TempConsistList[:]
-
-def DelFromMap(TempDelList,a,mymap):# без рендера
-	# print "DelFromMap"
-	
-	obj=mymap.ObjectList.index(a)
-	for i in TempDelList:# для всех кортежей с координатами ячеек
-		y=i[0]
-		x=i[1]
-		list2=[]
-		flag=False
-		if obj in mymap.MapList[y][x]:
-			flag=True
-		if flag==True:mymap.MapList[y][x].remove(obj)
-
-def AppendOnMap(TempAppendList,a,mymap):# без рендера
-	# print "AppendOnMap"
-	for i in TempAppendList:
-		y=i[0]
-		x=i[1]
-		obj=mymap.ObjectList.index(a)
-		if not mymap.IsCellExist(y,x):
-			mymap.CreateCell(y,x)
-		mymap.MapList[y][x].append(obj)
-
-def GetTempDelList(list1,list2):# без рендера
-	# print "GetTempDelList"
-	TempDelList=[]
-	for i in list1:
-		if i not in list2:
-			TempDelList.append(i)
-	return TempDelList
-
-def GetTempAppendList(list1,list2):# без рендера
-	# print "GetTempAppendList"
-	TempAppendList=[]
-	for i in list2:
-		if i not in list1:
-			TempAppendList.append(i)
-	return TempAppendList
-
-def DrawLabel(text,mymap):# вывести надпись
-	# print "DrawLabel"
-	mymap.sc.fill(wh,(300,40,50,50))
-	mymap.sc.blit(Font2.render(text,1,fc,wh),(300,40))
-	mymap.NeedUpdate=True
-
-def DrawLabelXY(text,x,y,mymap):
-	# print "DrawLabelXY"
-	text_surf=Font3.render(text,1,fc,wh)
-	mymap.Back.blit(text_surf,(x,y))
-	mymap.NeedUpdate=True
-
-def RedrawObject(a,mymap):# Textedit
-	Redraw2([a],mymap)
-	DrawObject(a,mymap)
-	DrawText([a],mymap)
-	DrawCursor(a,bl,mymap)
-	mymap.NeedUpdate=True
-
-def key_disp(a,k1,e,mymap):# обработать события клавиш Это контроллер текстового поля
-	print e.key,e.mod,K_c,KMOD_LCTRL,~(~KMOD_CAPS&~KMOD_LCTRL)
-	if (e.key==K_s and e.mod==KMOD_LCTRL)  or (e.key==K_s and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
-		mymap.QuickSave()
-	if (e.key==K_c and e.mod==KMOD_LCTRL)  or (e.key==K_c and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
-		# print scrap.get_types ()
-		txt=scrap.get('text/plain;charset=utf-8')
-		if txt:
-			txt3=txt.decode('utf_16')
-			# print "txt3",txt3
-			
+		x=a.rx+2-self.Rel_x
+		y=a.ry+2+a.soft_y*17-self.Rel_y
+		self.sc.blit(text_surf,(x,y))
+	def DrawChar(self,a):# Textedit # вывести символ на экран (нужна интерактивность а скорость набора разная)
+		text=a.text[a.soft_y][:a.soft_x]
+		text_surf=Font2.render(text,1,fc,wh)
+		
+		if a.w_clear!=0:
+			text=a.text[a.soft_y]
+			text_surf=Font2.render(text,1,fc,wh)
+			# высота поверхности 17
+			x=a.rx+2-self.Rel_x
+			y=a.ry+2+a.soft_y*17-self.Rel_y
+			CalcMaxW(a,self)
+			s2=Surface((a.w_clear,17))
+			s2.fill(wh)
+			self.sc.blit(s2,(x,y))
+			self.sc.blit(text_surf,(x,y))
+			self.NeedUpdate=True
+			DrawCursor(a,bl,self)
 		else:
-			print "There does not seem to be text in the clipboard."
+			x=a.rx+2-self.Rel_x
+			y=a.ry+2+a.soft_y*17-self.Rel_y
+			CalcMaxW(a,self)
+			self.sc.blit(text_surf,(x,y))
+			DrawCursor(a,bl,self)
+			self.NeedUpdate=True
+	def CalcMaxW(self,a):
+		# print "CalcMaxW"
+		a.MaxW=0
+		for i in range(0,len(a.text)):
+			w=self.GetTextWidth(a.text[i])
+			if w>a.MaxW:
+				a.MaxW=w
+		self.ChangeBorder(a)
+		self.DrawBorder(a,bl)
+		self.CorrectMap(a)
+	def CorrectMap(self,a):# без рендера
+		# print "CorrectMap"
+		TempConsistList=[]
+		self.GetCellList(a)
+		TempConsistList=self.ConsistList
+		TempDelList=[]
+		TempAppendList=[]
+		TempDelList=self.GetTempDelList(a.ConsistList,TempConsistList)
+		TempAppendList=self.GetTempAppendList(a.ConsistList,TempConsistList)
+		self.DelFromMap(TempDelList,a)
+		self.AppendOnMap(TempAppendList,a)
+		a.ConsistList=TempConsistList[:]
+	def DelFromMap(self,TempDelList,a):# без рендера
+		# print "DelFromMap"
 		
-	if (e.key==K_v and e.mod==KMOD_LCTRL)  or (e.key==K_v and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
-		txt=scrap.get('text/plain;charset=utf-8')
-		if txt:
-			txt3=txt.decode("utf-16")
-			list=[]
-			list=txt3[:-1].split("\n")
-			if list==[]:list.append(txt3)
-			if list[-1]=="\n":list=list[:-1]
-			up=a.text[:a.soft_y+1]
-			first_half=a.text[a.soft_y][:a.soft_x]
-			second_half=a.text[a.soft_y][a.soft_x:]
-			up[-1]=first_half[:]+list[0]
-			up.extend(list[1:])
-			if up[-1]=="":
-				up=up[:-1]
-			up[-1]+=second_half
-			up.extend(a.text[a.soft_y+1:])
-			a.text=up[:]
-			CalcMaxW(a,mymap)
-			Redraw2([a],mymap)
-			Redraw(mymap)
-		
-	if (e.key==K_z and e.mod==KMOD_LCTRL)  or (e.key==K_z and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
-		pass
-	if e.key==K_BACKSPACE:#бекспейс должен поднимать строки если дошел до начала
-		# должно проходить по спецсимволам и в конце попадать на простой текст через elif else if
-		DrawCursor(a,wh,mymap)
-		if a.soft_x!=0: # Если не первый символ в строке
-			ClearWithBackground(a,mymap)
-			text1=a.text[a.soft_y][:a.soft_x-1]
-			text2=a.text[a.soft_y][a.soft_x:]
-			text=text1+text2
-			text_surf=Font2.render(a.text[a.soft_y],1,fc,wh)
-			a.w_clear=text_surf.get_width()
-			a.soft_x-=1
-			a.text[a.soft_y]=text[:]# меньше на один символ
-			CalcMaxW(a,mymap)
+		obj=self.ObjectList.index(a)
+		for i in TempDelList:# для всех кортежей с координатами ячеек
+			y=i[0]
+			x=i[1]
+			list2=[]
+			flag=False
+			if obj in self.MapList[y][x]:
+				flag=True
+			if flag==True:self.MapList[y][x].remove(obj)
+	def AppendOnMap(self,TempAppendList,a):# без рендера
+		# print "AppendOnMap"
+		for i in TempAppendList:
+			y=i[0]
+			x=i[1]
+			obj=self.ObjectList.index(a)
+			if not self.IsCellExist(y,x):
+				self.CreateCell(y,x)
+			self.MapList[y][x].append(obj)
+	def GetTempDelList(self,list1,list2):# без рендера
+		# print "GetTempDelList"
+		TempDelList=[]
+		for i in list1:
+			if i not in list2:
+				TempDelList.append(i)
+		return TempDelList
+	def GetTempAppendList(self,list1,list2):# без рендера
+		# print "GetTempAppendList"
+		TempAppendList=[]
+		for i in list2:
+			if i not in list1:
+				TempAppendList.append(i)
+		return TempAppendList
+	def DrawLabel(self,text):# вывести надпись
+		# print "DrawLabel"
+		self.sc.fill(wh,(300,40,50,50))
+		self.sc.blit(Font2.render(text,1,fc,wh),(300,40))
+		self.NeedUpdate=True
+	def DrawLabelXY(self,text,x,y):
+		# print "DrawLabelXY"
+		text_surf=Font3.render(text,1,fc,wh)
+		self.Back.blit(text_surf,(x,y))
+		self.NeedUpdate=True
+	def RedrawObject(self,a):# Textedit
+		self.Redraw2([a])
+		self.DrawObject(a)
+		self.DrawText([a])
+		self.DrawCursor(a,bl)
+		self.NeedUpdate=True
+	def key_disp(self,a,k1,e):# обработать события клавиш Это контроллер текстового поля
+		# print e.key,e.mod,K_c,KMOD_LCTRL,~(~KMOD_CAPS&~KMOD_LCTRL)
+		if (e.key==K_s and e.mod==KMOD_LCTRL)  or (e.key==K_s and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
+			mymap.QuickSave()
+		if (e.key==K_c and e.mod==KMOD_LCTRL)  or (e.key==K_c and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
+			# print scrap.get_types ()
+			txt=scrap.get('text/plain;charset=utf-8')
+			if txt:
+				# txt3=txt.decode('utf_8')
+				pass
+				# print "txt3",txt3
+				
+			else:
+				print "There does not seem to be text in the clipboard."
+			
+		if (e.key==K_v and e.mod==KMOD_LCTRL)  or (e.key==K_v and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
+			txt=scrap.get('text/plain;charset=utf-8')
+			if txt:
+				txt3=txt.decode("utf-16")
+				list=[]
+				list=txt3[:-1].split("\n")
+				if list==[]:list.append(txt3)
+				if list[-1]=="\n":list=list[:-1]
+				up=a.text[:a.soft_y+1]
+				first_half=a.text[a.soft_y][:a.soft_x]
+				second_half=a.text[a.soft_y][a.soft_x:]
+				up[-1]=first_half[:]+list[0]
+				up.extend(list[1:])
+				if up[-1]=="":
+					up=up[:-1]
+				up[-1]+=second_half
+				up.extend(a.text[a.soft_y+1:])
+				a.text=up[:]
+				self.CalcMaxW(a)
+				self.Redraw2([a])
+				self.Redraw()
+			
+		if (e.key==K_z and e.mod==KMOD_LCTRL)  or (e.key==K_z and e.mod==~(~KMOD_CAPS&~KMOD_LCTRL)):
+			pass
+		if e.key==K_BACKSPACE:#бекспейс должен поднимать строки если дошел до начала
+			# должно проходить по спецсимволам и в конце попадать на простой текст через elif else if
+			self.DrawCursor(a,wh)
+			if a.soft_x!=0: # Если не первый символ в строке
+				self.ClearWithBackground(a)
+				text1=a.text[a.soft_y][:a.soft_x-1]
+				text2=a.text[a.soft_y][a.soft_x:]
+				text=text1+text2
+				text_surf=Font2.render(a.text[a.soft_y],1,fc,wh)
+				a.w_clear=text_surf.get_width()
+				a.soft_x-=1
+				a.text[a.soft_y]=text[:]# меньше на один символ
+				self.CalcMaxW(a)
+				a.etalon_w=0
+				a.line_pos=(a.soft_x, a.soft_y)
+				self.RedrawObject(a)
+			else:#если в самом начале строки
+				if a.soft_y!=0:# Не верхняя строчка
+					self.ClearWithBackground(a)
+					text1=a.text[a.soft_y-1]
+					text2=a.text[a.soft_y][:]
+					a.text.remove(a.text[a.soft_y])
+					a.soft_x=len(a.text[a.soft_y-1])
+					a.text[a.soft_y-1]=text1+text2
+					a.soft_y-=1
+					self.CalcMaxW(a)
+					self.RedrawObject(a)
+					self.DrawCursor(a,bl)
+		elif e.key==K_RETURN:
+			self.DrawCursor(a,wh)
+			self.ClearWithBackground(a)
+			if a.soft_x==len(a.text[a.soft_y]):# Если конец строки
+				a.w_clear=0
+				a.text.append('')
+				a.soft_x=0
+				a.soft_y+=1
+				self.CalcMaxW(a)
+				self.RedrawObject(a)
+			else:
+				text1=a.text[a.soft_y][:a.soft_x]
+				text2=a.text[a.soft_y][a.soft_x:]
+				a.text.insert(a.soft_y+1,'')
+				a.text[a.soft_y]=text1[:]
+				a.text[a.soft_y+1]=text2[:]
+				a.soft_x=0
+				a.soft_y+=1
+				self.CalcMaxW(a)
+				self.RedrawObject(a)
+		elif e.key==K_UP:
+			if a.soft_y!=0:
+				if a.etalon_w==0:
+					text=a.text[a.line_pos[1]][:a.line_pos[0]]#IndexError: list index out of range
+					text_surf=Font2.render(text,1,fc,wh)
+					a.etalon_w=text_surf.get_width()
+				self.NeedUpdate=True
+				a.soft_y-=1
+				for i in range(0,len(a.text[a.soft_y])):
+					text=a.text[a.soft_y][:i]
+					w_line=self.GetTextWidth(text)
+					if w_line>a.etalon_w:
+						w1= w_line-a.etalon_w
+						text=a.text[a.soft_y][:i-1]
+						w_line2=self.GetTextWidth(text)
+						w2=a.etalon_w-w_line2
+						if w2>w1:
+							a.soft_x=i
+						elif w2<w1:
+							a.soft_x=i-1
+						break
+					if w_line==a.etalon_w:
+						a.soft_x=i
+						break
+				self.Redraw2([a])
+				self.DrawText([a])
+				self.DrawCursor(a,bl)
+		elif e.key==K_DOWN:
+			if a.soft_y!=len(a.text)-1:
+				# если эталон ширины равен 0 то посчитать '
+				if a.etalon_w==0:
+					text=a.text[a.line_pos[1]][:a.line_pos[0]]
+					text_surf=Font2.render(text,1,fc,wh)
+					a.etalon_w=text_surf.get_width()
+				a.soft_y+=1
+				for i in range(0,len(a.text[a.soft_y])):
+					text=a.text[a.soft_y][:i]
+					w_line=self.GetTextWidth(text)
+					if w_line>a.etalon_w:
+						w1= w_line-a.etalon_w
+						text=a.text[a.soft_y][:i-1]
+						w_line2=self.GetTextWidth(text)
+						w2=a.etalon_w-w_line2
+						if w2>w1:
+							a.soft_x=i
+						elif w2<w1:
+							a.soft_x=i-1
+						break
+					if w_line==a.etalon_w:
+						a.soft_x=i
+						break
+				self.Redraw2([a])
+				self.DrawText([a])
+				self.DrawCursor(a,bl)
+		elif e.key==K_RIGHT:
+			if a.soft_x!=len(a.text[a.soft_y]):
+				a.soft_x+=1
+				self.DrawText([a])
+				self.DrawCursor(a,bl)
 			a.etalon_w=0
 			a.line_pos=(a.soft_x, a.soft_y)
-			RedrawObject(a,mymap)
-		else:#если в самом начале строки
-			if a.soft_y!=0:# Не верхняя строчка
-				ClearWithBackground(a,mymap)
-				text1=a.text[a.soft_y-1]
-				text2=a.text[a.soft_y][:]
-				a.text.remove(a.text[a.soft_y])
-				a.soft_x=len(a.text[a.soft_y-1])
-				a.text[a.soft_y-1]=text1+text2
-				a.soft_y-=1
-				CalcMaxW(a,mymap)
-				RedrawObject(a,mymap)
-				DrawCursor(a,bl,mymap)
-	elif e.key==K_RETURN:
-		DrawCursor(a,wh,mymap)
-		ClearWithBackground(a,mymap)
-		if a.soft_x==len(a.text[a.soft_y]):# Если конец строки
-			a.w_clear=0
-			a.text.append('')
+		elif e.key==K_LEFT:
+			if a.soft_x!=0:
+				self.DrawCursor(a,wh)
+				a.soft_x-=1
+				self.DrawText([a])
+				self.DrawCursor(a,bl)
+			a.etalon_w=0
+			a.line_pos=(a.soft_x, a.soft_y)
+		elif e.key==K_HOME:
+			self.ClearWithBackground(a)
 			a.soft_x=0
-			a.soft_y+=1
-			CalcMaxW(a,mymap)
-			RedrawObject(a,mymap)
-		else:
-			text1=a.text[a.soft_y][:a.soft_x]
-			text2=a.text[a.soft_y][a.soft_x:]
-			a.text.insert(a.soft_y+1,'')
-			a.text[a.soft_y]=text1[:]
-			a.text[a.soft_y+1]=text2[:]
-			a.soft_x=0
-			a.soft_y+=1
-			CalcMaxW(a,mymap)
-			RedrawObject(a,mymap)
-	elif e.key==K_UP:
-		if a.soft_y!=0:
-			if a.etalon_w==0:
-				text=a.text[a.line_pos[1]][:a.line_pos[0]]#IndexError: list index out of range
-				text_surf=Font2.render(text,1,fc,wh)
-				a.etalon_w=text_surf.get_width()
-			mymap.NeedUpdate=True
-			a.soft_y-=1
-			for i in range(0,len(a.text[a.soft_y])):
-				text=a.text[a.soft_y][:i]
-				w_line=GetTextWidth(text)
-				if w_line>a.etalon_w:
-					w1= w_line-a.etalon_w
-					text=a.text[a.soft_y][:i-1]
-					w_line2=GetTextWidth(text)
-					w2=a.etalon_w-w_line2
-					if w2>w1:
-						a.soft_x=i
-					elif w2<w1:
-						a.soft_x=i-1
-					break
-				if w_line==a.etalon_w:
-					a.soft_x=i
-					break
-			Redraw2([a],mymap)
-			DrawText([a],mymap)
-			DrawCursor(a,bl,mymap)
-	elif e.key==K_DOWN:
-		if a.soft_y!=len(a.text)-1:
-			# если эталон ширины равен 0 то посчитать '
-			if a.etalon_w==0:
-				text=a.text[a.line_pos[1]][:a.line_pos[0]]
-				text_surf=Font2.render(text,1,fc,wh)
-				a.etalon_w=text_surf.get_width()
-			# DrawCursor(a,wh,mymap)
-			# DrawTextLine(a,mymap)
-			a.soft_y+=1
-			for i in range(0,len(a.text[a.soft_y])):
-				text=a.text[a.soft_y][:i]
-				w_line=GetTextWidth(text)
-				if w_line>a.etalon_w:
-					w1= w_line-a.etalon_w
-					text=a.text[a.soft_y][:i-1]
-					w_line2=GetTextWidth(text)
-					w2=a.etalon_w-w_line2
-					if w2>w1:
-						a.soft_x=i
-					elif w2<w1:
-						a.soft_x=i-1
-					break
-				if w_line==a.etalon_w:
-					a.soft_x=i
-					break
-			Redraw2([a],mymap)
-			DrawText([a],mymap)
-			DrawCursor(a,bl,mymap)
-	elif e.key==K_RIGHT:
-		if a.soft_x!=len(a.text[a.soft_y]):
-			a.soft_x+=1
-			DrawText([a],mymap)
-			DrawCursor(a,bl,mymap)
-		a.etalon_w=0
-		a.line_pos=(a.soft_x, a.soft_y)
-	elif e.key==K_LEFT:
-		if a.soft_x!=0:
-			DrawCursor(a,wh,mymap)
-			a.soft_x-=1
-			DrawText([a],mymap)
-			DrawCursor(a,bl,mymap)
-		a.etalon_w=0
-		a.line_pos=(a.soft_x, a.soft_y)
-	elif e.key==K_HOME:
-		ClearWithBackground(a,mymap)
-		a.soft_x=0
-		RedrawObject(a,mymap)
-		DrawCursor(a,bl,mymap)
-	elif e.key==K_END:
-		ClearWithBackground(a,mymap)
-		a.soft_x=len(a.text[a.soft_y])
-		RedrawObject(a,mymap)
-		DrawCursor(a,bl,mymap)
-	elif e.key==K_DELETE:
-		if len(a.text[a.soft_y])==a.soft_x:#  В конце строки
-			if a.soft_y<len(a.text)-1:# если внизу есть строки
-				text1=a.text[a.soft_y]
-				text2=a.text[a.soft_y+1]# по идее не должно вылезать за пределы
+			self.RedrawObject(a)
+			self.DrawCursor(a,bl)
+		elif e.key==K_END:
+			self.ClearWithBackground(a)
+			a.soft_x=len(a.text[a.soft_y])
+			self.RedrawObject(a)
+			self.DrawCursor(a,bl)
+		elif e.key==K_DELETE:
+			if len(a.text[a.soft_y])==a.soft_x:#  В конце строки
+				if a.soft_y<len(a.text)-1:# если внизу есть строки
+					text1=a.text[a.soft_y]
+					text2=a.text[a.soft_y+1]# по идее не должно вылезать за пределы
+					text=text1+text2
+					a.text[a.soft_y]=text[:]
+					a.text.remove(a.text[a.soft_y+1])
+					self.CalcMaxW(a)
+					self.Redraw2([a])
+					self.TakeBackground(a)
+					self.ClearWithBackground(a)#СПОРНЫЙ ВОПРОС
+					
+					self.DrawObject(a)# Вообще-то может измениться рамка
+					self.DrawText([a])
+					self.Redraw()
+					self.DrawCursor(a,bl)
+			else:# Посреди строки
+				text1=a.text[a.soft_y][:a.soft_x]
+				text2=a.text[a.soft_y][a.soft_x+1:]
 				text=text1+text2
 				a.text[a.soft_y]=text[:]
-				a.text.remove(a.text[a.soft_y+1])
-				CalcMaxW(a,mymap)
-				Redraw2([a],mymap)
-				TakeBackground(a,mymap)
-				ClearWithBackground(a,mymap)#СПОРНЫЙ ВОПРОС
-				
-				DrawObject(a,mymap)# Вообще-то может измениться рамка
-				DrawText([a],mymap)
-				Redraw(mymap)
-				DrawCursor(a,bl,mymap)
-		else:# Посреди строки
-			text1=a.text[a.soft_y][:a.soft_x]
-			text2=a.text[a.soft_y][a.soft_x+1:]
-			text=text1+text2
-			a.text[a.soft_y]=text[:]
-			CalcMaxW(a,mymap)
-			Redraw2([a],mymap)
-			TakeBackground(a,mymap)
-			ClearWithBackground(a,mymap)
-			DrawObject(a,mymap)# Вообще-то может измениться рамка
-			DrawText([a],mymap)
-			Redraw(mymap)
-			DrawCursor(a,bl,mymap)
-	elif (e.key in range(39,123) and e.mod!=64) or (e.key in range(39,123) and e.mod==1) or e.key==32 or (e.key==32 and e.mod==1):# обычный текст (нужно сделать автоперенос чтобы не вылезало за экран)
-		if a!=None:
-			ClearWithBackground(a,mymap)
-			text1=a.text[a.soft_y][:a.soft_x]#left side
-			text2=a.text[a.soft_y][a.soft_x:]
-			text=text1+k1+text2
-			a.text[a.soft_y]=text[:]
-			a.soft_x+=1
-			CalcMaxW(a,mymap)
-			RedrawObject(a,mymap)
-	
-	
-def ClearWithBackground(a,mymap):
-	# print "ClearWithBackground"
-	mymap.EraseSurf=Surface((a.w+10,a.h+10))
-	mymap.EraseSurf.fill(wh)
-	mymap.EraseSurf.blit(mymap.Background,(-(a.rx-mymap.Rel_x-10),-(a.ry-mymap.Rel_y-10)))
-	mymap.Back.blit(mymap.EraseSurf,(a.rx-mymap.Rel_x-10,a.ry-mymap.Rel_y-10))
-
-def PrepareObject(x,y,mymap):# Textedit # создать основной объект
-	# print "PrepareObject"
-	a = text_box()# создаем объект
-	a.text=['']
-	a.rx=x+mymap.Rel_x# реальные координаты
-	a.ry=y+mymap.Rel_y# реальные координаты
-	return a
-
-def DrawText(list,mymap):# Использовать после загрузки
-	# print "DrawText"
-	for i in list:
-		if i.text==['']:
-			i.TextSurf=Surface((i.w-2,i.h-2))
+				self.CalcMaxW(a)
+				self.Redraw2([a])
+				self.TakeBackground(a)
+				self.ClearWithBackground(a)
+				self.DrawObject(a)# Вообще-то может измениться рамка
+				self.DrawText([a])
+				self.Redraw()
+				self.DrawCursor(a,bl)
+		elif (e.key in range(39,123) and e.mod!=64) or (e.key in range(39,123) and e.mod==1) or e.key==32 or (e.key==32 and e.mod==1):# обычный текст (нужно сделать автоперенос чтобы не вылезало за экран)
+			if a!=None:
+				self.ClearWithBackground(a)
+				text1=a.text[a.soft_y][:a.soft_x]#left side
+				text2=a.text[a.soft_y][a.soft_x:]
+				text=text1+k1+text2
+				a.text[a.soft_y]=text[:]
+				a.soft_x+=1
+				self.CalcMaxW(a)
+				self.RedrawObject(a)
+	def ClearWithBackground(self,a):
+		# print "ClearWithBackground"
+		self.EraseSurf=Surface((a.w+10,a.h+10))
+		self.EraseSurf.fill(wh)
+		self.EraseSurf.blit(self.Background,(-(a.rx-self.Rel_x-10),-(a.ry-self.Rel_y-10)))
+		self.Back.blit(self.EraseSurf,(a.rx-self.Rel_x-10,a.ry-self.Rel_y-10))
+	def PrepareObject(self,x,y):# Textedit # создать основной объект
+		# print "PrepareObject"
+		a = text_box()# создаем объект
+		a.text=['']
+		a.rx=x+self.Rel_x# реальные координаты
+		a.ry=y+self.Rel_y# реальные координаты
+		return a
+	def DrawText(self,list):# Использовать после загрузки
+		# print "DrawText"
+		for i in list:
+			if i.text==['']:
+				i.TextSurf=Surface((i.w-2,i.h-2))
+				i.TextSurf.fill(wh)
+			EraseSurf=Surface(i.TextSurf.get_size())
+			EraseSurf.fill(wh)
+			self.Back.blit(EraseSurf,(i.x+1,i.y+1))
+			self.Back.blit(i.TextSurf,(i.x+1,i.y+1))
+		self.NeedUpdate=True
+	def DrawText2(self,list):# Использовать после загрузки
+		# print "DrawText"
+		for i in list:
+			if (i.text!=['']):
+				x=i.x
+				y=i.y-17
+				for j in range(len(i.text)):
+					y+=17
+					text=i.text[j]
+					text_surf=Font2.render(text,1,fc,wh)
+					self.sc.blit(text_surf,(x+2,y+2))
+		self.NeedUpdate=True
+	def Redraw(self):
+		# print "Redraw"
+		rel_x=self.Rel_x
+		rel_y=self.Rel_y
+		xk1=-(rel_x % 64)
+		yk1=-(rel_y % 64)
+		x_list=[]
+		y_list=[]
+		if self.FlagRamka:
+			for i in range(xk1,xk1+1088,64):
+				draw.line(sc,bl,(i,0),(i,768),1)
+				x_list.append(i)
+			for i in range(yk1,yk1+768+64,64):
+				draw.line(sc,bl,(0,i),(1024,i),1)
+				y_list.append(i)
+			for i in range(0,len(x_list)):
+				for j in range(0,len(y_list)):
+					x1=x_list[i]
+					y1=y_list[j]
+					text1=str((x1+rel_x)/64)
+					text2=str((y1+rel_y)/64)
+					# text1=str((x1+rel_x)>>6)
+					# text2=str((y1+rel_y)>>6)
+					self.DrawLabelXY(text1+" : "+text2,x1+3,y1+3)
+		self.Back=self.CLEAR
+		self.Back.fill(wh)
+		if self.LinesList!=[]:
+			for i in self.LinesList:
+				ObjA=i[0]
+				ObjB=i[1]
+				x1=self.ObjectList[ObjA].rx-self.Rel_x
+				y1=self.ObjectList[ObjA].ry-self.Rel_y
+				x2=self.ObjectList[ObjB].rx-self.Rel_x
+				y2=self.ObjectList[ObjB].ry-self.Rel_y
+				draw.line(self.Back,bl,(x1,y1),(x2,y2),1)
+		list=self.GetScreenList()
+		for i1 in list:
+			a=self.ObjectList[i1]
+			a.x=a.rx-self.Rel_x
+			a.y=a.ry-self.Rel_y
+			draw.circle(self.Back,wh,(a.x,a.y),10,0)# рисуем окружность по локальным координатам
+			draw.circle(self.Back,bl,(a.x,a.y),10,1)
+			draw.rect(self.Back, wh, (a.x,a.y,a.w,a.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
+			draw.rect(self.Back, bl, (a.x,a.y,a.w,a.h), 1)
+			self.DrawText([a])
+		for i in self.ListSelection:# оставляем выделение при навигации по карте
+				a=self.ObjectList[i]
+				self.DrawSelection(a,bl)
+		self.Back.blit(menu.menu.MainSurf,(menu.menu.position))# это можно исключить, если копировать мимо меню
+		self.NeedUpdate=True
+	def Redraw2(self,list):
+		for i in list:
+			i.TextSurf=Surface((i.MaxW,2+len(i.text)*17))
 			i.TextSurf.fill(wh)
-		EraseSurf=Surface(i.TextSurf.get_size())
-		EraseSurf.fill(wh)
-		mymap.Back.blit(EraseSurf,(i.x+1,i.y+1))
-		mymap.Back.blit(i.TextSurf,(i.x+1,i.y+1))
-	mymap.NeedUpdate=True
-
-
-def DrawText2(list,mymap):# Использовать после загрузки
-	# print "DrawText"
-	for i in list:
-		if (i.text!=['']):
-			x=i.x
-			y=i.y-17
-			for j in range(len(i.text)):
-				y+=17
-				text=i.text[j]
-				text_surf=Font2.render(text,1,fc,wh)
-				mymap.sc.blit(text_surf,(x+2,y+2))
-	mymap.NeedUpdate=True
-	
-def Redraw(mymap):
-	# print "Redraw"
-	rel_x=mymap.Rel_x
-	rel_y=mymap.Rel_y
-	xk1=-(rel_x % 64)
-	yk1=-(rel_y % 64)
-	x_list=[]
-	y_list=[]
-	if mymap.FlagRamka:
-		for i in range(xk1,xk1+1088,64):
-			draw.line(sc,bl,(i,0),(i,768),1)
-			x_list.append(i)
-		for i in range(yk1,yk1+768+64,64):
-			draw.line(sc,bl,(0,i),(1024,i),1)
-			y_list.append(i)
-		for i in range(0,len(x_list)):
-			for j in range(0,len(y_list)):
-				x1=x_list[i]
-				y1=y_list[j]
-				text1=str((x1+rel_x)/64)
-				text2=str((y1+rel_y)/64)
-				# text1=str((x1+rel_x)>>6)
-				# text2=str((y1+rel_y)>>6)
-				DrawLabelXY(text1+" : "+text2,x1+3,y1+3,mymap)
-	mymap.Back=mymap.CLEAR
-	mymap.Back.fill(wh)
-	if mymap.LinesList!=[]:
-		for i in mymap.LinesList:
-			ObjA=i[0]
-			ObjB=i[1]
-			x1=mymap.ObjectList[ObjA].rx-mymap.Rel_x
-			y1=mymap.ObjectList[ObjA].ry-mymap.Rel_y
-			x2=mymap.ObjectList[ObjB].rx-mymap.Rel_x
-			y2=mymap.ObjectList[ObjB].ry-mymap.Rel_y
-			draw.line(mymap.Back,bl,(x1,y1),(x2,y2),1)
-	list=GetScreenList(mymap)
-	for i1 in list:
-		a=mymap.ObjectList[i1]
-		a.x=a.rx-mymap.Rel_x
-		a.y=a.ry-mymap.Rel_y
-		draw.circle(mymap.Back,wh,(a.x,a.y),10,0)# рисуем окружность по локальным координатам
-		draw.circle(mymap.Back,bl,(a.x,a.y),10,1)
-		draw.rect(mymap.Back, wh, (a.x,a.y,a.w,a.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
-		draw.rect(mymap.Back, bl, (a.x,a.y,a.w,a.h), 1)
-		DrawText([a],mymap)
-	for i in mymap.ListSelection:# оставляем выделение при навигации по карте
-			a=mymap.ObjectList[i]
-			DrawSelection(a,bl,mymap)
-	mymap.Back.blit(menu.menu.MainSurf,(menu.menu.position))# это можно исключить, если копировать мимо меню
-	mymap.NeedUpdate=True
-
-def Redraw2(list,mymap):
-	for i in list:
-		i.TextSurf=Surface((i.MaxW,2+len(i.text)*17))
-		i.TextSurf.fill(wh)
-		if (i.text!=['']):
-			for j in range(len(i.text)):
-				x=0
-				y=j*17
-				text=i.text[j]
-				text_surf=Font2.render(text,1,fc,wh)
-				i.TextSurf.blit(text_surf,(x,y))
-
-def GetScreenList(mymap):#Без рендера
-	# print "GetScreenList"
-	rel_x=mymap.Rel_x
-	rel_y=mymap.Rel_y
-	rel_xk=rel_x/64
-	rel_yk=rel_y/64
-	list=[]
-	for i in range(rel_yk, rel_yk+14):#14? O_o
-		for j in range(rel_xk,rel_xk+18):#18? o_O
-			if mymap.IsCellExist(i,j):
-				if mymap.MapList[i][j]!=[]:
-					for k in mymap.MapList[i][j]:
-						if k not in list:# длительная операция может лучше словарь?
-							list.append(k)
-	return list
-
-def TakeBackground(a,mymap):# берет без одного объекта
-	# print "TakeBackground"
-	Background=mymap.Background
-	Background.fill(wh)
-	rel_x=mymap.Rel_x
-	rel_y=mymap.Rel_y
-	xk1=(rel_x/64*64)-rel_x
-	yk1=(rel_y/64*64)-rel_y
-	x_list=[]
-	y_list=[]
-	if mymap.FlagRamka:
-		for i in range(xk1,xk1+1024+64,64):
-			draw.line(Background,bl,(i,0),(i,768),1)
-			x_list.append(i)
-		for i in range(yk1,yk1+768+64,64):
-			y_list.append(i)
-			draw.line(Background,bl,(0,i),(1024,i),1)
-		# Проставляем адреса ячеек
-		for i in range(0,len(x_list)):
-			for j in range(0,len(y_list)):
-				x1=x_list[i]
-				y1=y_list[j]
-				text1=str((x1+rel_x)/64)
-				text2=str((y1+rel_y)/64)
-				text=text1+" : "+text2
-				text_surf=Font3.render(text,1,fc,wh)
-				Background.blit(text_surf,(x1+3,y1+3))
-	rel_xk=-rel_x/64
-	rel_yk=-rel_y/64
-	list=[]
-	list=GetScreenList(mymap)
-	idx=mymap.ObjectList.index(a)
-	for i1 in list:
-		if i1!=idx:
-			i=mymap.ObjectList[i1]
-			i.x=i.rx-mymap.Rel_x
-			i.y=i.ry-mymap.Rel_y
+			if (i.text!=['']):
+				for j in range(len(i.text)):
+					x=0
+					y=j*17
+					text=i.text[j]
+					text_surf=Font2.render(text,1,fc,wh)
+					i.TextSurf.blit(text_surf,(x,y))
+	def GetScreenList(self):#Без рендера
+		# print "GetScreenList"
+		rel_x=self.Rel_x
+		rel_y=self.Rel_y
+		rel_xk=rel_x/64
+		rel_yk=rel_y/64
+		list=[]
+		for i in range(rel_yk, rel_yk+14):#14? O_o
+			for j in range(rel_xk,rel_xk+18):#18? o_O
+				if self.IsCellExist(i,j):
+					if self.MapList[i][j]!=[]:
+						for k in self.MapList[i][j]:
+							if k not in list:# длительная операция может лучше словарь?
+								list.append(k)
+		return list
+	def TakeBackground(self,a):# берет без одного объекта
+		# print "TakeBackground"
+		Background=self.Background
+		Background.fill(wh)
+		rel_x=self.Rel_x
+		rel_y=self.Rel_y
+		xk1=(rel_x/64*64)-rel_x
+		yk1=(rel_y/64*64)-rel_y
+		x_list=[]
+		y_list=[]
+		if self.FlagRamka:
+			for i in range(xk1,xk1+1024+64,64):
+				draw.line(Background,bl,(i,0),(i,768),1)
+				x_list.append(i)
+			for i in range(yk1,yk1+768+64,64):
+				y_list.append(i)
+				draw.line(Background,bl,(0,i),(1024,i),1)
+			# Проставляем адреса ячеек
+			for i in range(0,len(x_list)):
+				for j in range(0,len(y_list)):
+					x1=x_list[i]
+					y1=y_list[j]
+					text1=str((x1+rel_x)/64)
+					text2=str((y1+rel_y)/64)
+					text=text1+" : "+text2
+					text_surf=Font3.render(text,1,fc,wh)
+					Background.blit(text_surf,(x1+3,y1+3))
+		rel_xk=-rel_x/64
+		rel_yk=-rel_y/64
+		list=[]
+		list=self.GetScreenList()
+		idx=self.ObjectList.index(a)
+		for i1 in list:
+			if i1!=idx:
+				i=self.ObjectList[i1]
+				i.x=i.rx-self.Rel_x
+				i.y=i.ry-self.Rel_y
+				draw.circle(Background,wh,(i.x,i.y),10,0)# рисуем окружность по локальным координатам
+				draw.circle(Background,bl,(i.x,i.y),10,1)
+				draw.rect(Background, wh, (i.x,i.y,i.w,i.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
+				draw.rect(Background, bl, (i.x,i.y,i.w,i.h), 1)
+				if (i.text!=['']):
+					for j in range(0,len(i.text)):
+						x=2+i.x
+						y=j*17+2+i.y
+						text=i.text[j]
+						text_surf=Font2.render(text,1,fc,wh)
+						Background.blit(text_surf,(x,y))
+		self.Background=Background
+	def TakeBackground2(self):# берет без одного объекта
+		# print "TakeBackground"
+		Background=self.Background
+		Background.fill(wh)
+		rel_x=self.Rel_x
+		rel_y=self.Rel_y
+		xk1=(rel_x/64*64)-rel_x
+		yk1=(rel_y/64*64)-rel_y
+		x_list=[]
+		y_list=[]
+		if self.FlagRamka:
+			# рисуем рамку
+			for i in range(xk1,xk1+1024+64,64):
+				draw.line(Background,bl,(i,0),(i,768),1)
+				x_list.append(i)
+			for i in range(yk1,yk1+768+64,64):
+				y_list.append(i)
+				draw.line(Background,bl,(0,i),(1024,i),1)
+			# Проставляем адреса ячеек
+			for i in range(0,len(x_list)):
+				for j in range(0,len(y_list)):
+					x1=x_list[i]
+					y1=y_list[j]
+					text1=str((x1+rel_x)/64)
+					text2=str((y1+rel_y)/64)
+					text=text1+" : "+text2
+					text_surf=Font3.render(text,1,fc,wh)
+					Background.blit(text_surf,(x1+3,y1+3))
+		rel_xk=-rel_x/64
+		rel_yk=-rel_y/64
+		list=[]
+		list=self.GetScreenList()
+		for i1 in list:
+			i=self.ObjectList[i1]
+			i.x=i.rx-self.Rel_x
+			i.y=i.ry-self.Rel_y
 			draw.circle(Background,wh,(i.x,i.y),10,0)# рисуем окружность по локальным координатам
 			draw.circle(Background,bl,(i.x,i.y),10,1)
 			draw.rect(Background, wh, (i.x,i.y,i.w,i.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
@@ -878,582 +953,494 @@ def TakeBackground(a,mymap):# берет без одного объекта
 					text=i.text[j]
 					text_surf=Font2.render(text,1,fc,wh)
 					Background.blit(text_surf,(x,y))
-	mymap.Background=Background
-
-def TakeBackground2(mymap):# берет без одного объекта
-	# print "TakeBackground"
-	Background=mymap.Background
-	Background.fill(wh)
-	rel_x=mymap.Rel_x
-	rel_y=mymap.Rel_y
-	xk1=(rel_x/64*64)-rel_x
-	yk1=(rel_y/64*64)-rel_y
-	x_list=[]
-	y_list=[]
-	if mymap.FlagRamka:
-		# рисуем рамку
-		for i in range(xk1,xk1+1024+64,64):
-			draw.line(Background,bl,(i,0),(i,768),1)
-			x_list.append(i)
-		for i in range(yk1,yk1+768+64,64):
-			y_list.append(i)
-			draw.line(Background,bl,(0,i),(1024,i),1)
-		# Проставляем адреса ячеек
-		for i in range(0,len(x_list)):
-			for j in range(0,len(y_list)):
-				x1=x_list[i]
-				y1=y_list[j]
-				text1=str((x1+rel_x)/64)
-				text2=str((y1+rel_y)/64)
-				text=text1+" : "+text2
-				text_surf=Font3.render(text,1,fc,wh)
-				Background.blit(text_surf,(x1+3,y1+3))
-	rel_xk=-rel_x/64
-	rel_yk=-rel_y/64
-	list=[]
-	list=GetScreenList(mymap)
-	for i1 in list:
-		i=mymap.ObjectList[i1]
-		i.x=i.rx-mymap.Rel_x
-		i.y=i.ry-mymap.Rel_y
-		draw.circle(Background,wh,(i.x,i.y),10,0)# рисуем окружность по локальным координатам
-		draw.circle(Background,bl,(i.x,i.y),10,1)
-		draw.rect(Background, wh, (i.x,i.y,i.w,i.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
-		draw.rect(Background, bl, (i.x,i.y,i.w,i.h), 1)
-		if (i.text!=['']):
-			for j in range(0,len(i.text)):
-				x=2+i.x
-				y=j*17+2+i.y
-				text=i.text[j]
-				text_surf=Font2.render(text,1,fc,wh)
-				Background.blit(text_surf,(x,y))
-	mymap.Background=Background
-
-def DrawObject(a,mymap):# отрисовать основной объект
-	# print "DrawObject"
-	a.x=a.rx-mymap.Rel_x# Что за дела тут после ДЕЛа? 
-	a.y=a.ry-mymap.Rel_y
-	draw.circle(mymap.Back,wh,(a.x,a.y),10,0)# рисуем окружность по локальным координатам
-	draw.circle(mymap.Back,bl,(a.x,a.y),10,1)
-	draw.rect(mymap.Back, wh, (a.x,a.y,a.w,a.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
-	draw.rect(mymap.Back, bl, (a.x,a.y,a.w,a.h), 1)
-
-def DrawBorder(a,color,mymap):# Textedit 
-	# print "DrawBorder"
-	draw.rect(mymap.Back, color, (a.rx-mymap.Rel_x,a.ry-mymap.Rel_y,a.w,a.h), 1)
-	mymap.NeedUpdate=True
-
-def DrawSelection(a,color,mymap):# Textedit 
-	# print "DrawBorder"
-	# draw.rect(sc, color, (a.rx-mymap.Rel_x-2,a.ry-mymap.Rel_y-2,a.w+3,a.h+3), 3)
-	draw.rect(mymap.Back, color, (a.rx-mymap.Rel_x-2,a.ry-mymap.Rel_y-2,a.w+3,a.h+3), 3)
-	mymap.NeedUpdate=True
-
-def GetObject(x,y,mymap):# без рендер
-	# print "GetObject"
-	x=x+mymap.Rel_x
-	y=y+mymap.Rel_y
-	yk=y/64
-	xk=x/64
-	mymap.FlagInsideHotPoint=False
-	mymap.FlagInsideObj=False
-	if mymap.IsCellExist(yk,xk):
-		list=mymap.MapList[yk][xk]
-		if list:
-			for j in list:
-				i=mymap.ObjectList[j]
-				if x>i.rx-10 and x<i.rx+10 and y>i.ry-10 and y<i.ry+10:
-					mymap.FlagInsideHotPoint=True
-				if x>i.rx and x<i.rx+i.w and y>i.ry and y<i.ry+i.h:
-					mymap.FlagInsideObj=True
-				if mymap.FlagInsideHotPoint==True and mymap.FlagInsideObj==True:
-					mymap.FlagInsideHotPoint=False
-				if mymap.FlagInsideHotPoint==True or mymap.FlagInsideObj==True:
-					break
-		if mymap.FlagInsideHotPoint==True or mymap.FlagInsideObj==True:
-			return mymap.ObjectList.index(i)
-	return -1
-
-
-def GetObject2(x,y,mymap):# без рендер
-	# print "GetObject"
-	x=x+mymap.Rel_x
-	y=y+mymap.Rel_y
-	yk=y/64
-	xk=x/64
-	mymap.FlagInsideHotPoint=False
-	mymap.FlagInsideObj=False
-	if mymap.IsCellExist(yk,xk):
-		list=mymap.MapList[yk][xk]
-		
-		if list:
-			for j in list:
-				i=mymap.ObjectList[j]
-				if x>i.rx and x<i.rx+i.w and y>i.ry and y<i.ry+i.h:
-					mymap.FlagInsideObj=True
-				if mymap.FlagInsideObj==True:
-					break
-		if mymap.FlagInsideObj==True:
-			return mymap.ObjectList.index(i)
-	return -1
-	
-
-def GetObjectUnder(x,y,mymap):
-	x=x+mymap.Rel_x
-	y=y+mymap.Rel_y
-	yk=y/64
-	xk=x/64
-	# может и не быть таких ячеек, проверить!
-	flag=False
-	list1=[]
-	list=[]
-	curObj=mymap.Focus
-	curObj1=mymap.ObjectList.index(curObj)
-	x1=curObj.rx-10
-	x2=curObj.rx+curObj.w
-	y1=curObj.ry-10
-	y2=curObj.ry+curObj.h
-	R1=Rect((x1,y1,x2-x1,y2-y1))
-	for k in range(len(curObj.ConsistList)):
-		yk=curObj.ConsistList[k][0]
-		xk=curObj.ConsistList[k][1]
-		list=mymap.MapList[yk][xk][:]
-		if curObj1 in list:
-			list.remove(curObj1)
-		if list:
-			for j in list:
-				i=mymap.ObjectList[j]
-				x1=i.rx-10
-				x2=i.rx+i.w
-				y1=i.ry-10
-				y2=i.ry+i.h
-				R2=Rect((x1,y1,x2-x1,y2-y1))
-				if R1.colliderect(R2):
-					if i!=curObj1:
-						result=mymap.ObjectList.index(i)
-						if result not in list1:
-							list1.append(result)
-					
-	if len(list1)>0:
-		return list1
-		
-	else:
+		self.Background=Background
+	def DrawObject(self,a):# отрисовать основной объект
+		# print "DrawObject"
+		a.x=a.rx-self.Rel_x# Что за дела тут после ДЕЛа? 
+		a.y=a.ry-self.Rel_y
+		draw.circle(self.Back,wh,(a.x,a.y),10,0)# рисуем окружность по локальным координатам
+		draw.circle(self.Back,bl,(a.x,a.y),10,1)
+		draw.rect(self.Back, wh, (a.x,a.y,a.w,a.h), 0)# прямоугольник перекрывает окружность, которая нужна для операций с объектом
+		draw.rect(self.Back, bl, (a.x,a.y,a.w,a.h), 1)
+	def DrawBorder(self,a,color):# Textedit 
+		# print "DrawBorder"
+		draw.rect(self.Back, color, (a.rx-self.Rel_x,a.ry-self.Rel_y,a.w,a.h), 1)
+		self.NeedUpdate=True
+	def DrawSelection(self,a,color):# Textedit 
+		# print "DrawBorder"
+		# draw.rect(sc, color, (a.rx-mymap.Rel_x-2,a.ry-mymap.Rel_y-2,a.w+3,a.h+3), 3)
+		draw.rect(self.Back, color, (a.rx-self.Rel_x-2,a.ry-self.Rel_y-2,a.w+3,a.h+3), 3)
+		self.NeedUpdate=True
+	def GetObject(self,x,y):# без рендер
+		# print "GetObject"
+		x=x+self.Rel_x
+		y=y+self.Rel_y
+		yk=y/64
+		xk=x/64
+		self.FlagInsideHotPoint=False
+		self.FlagInsideObj=False
+		if self.IsCellExist(yk,xk):
+			list=self.MapList[yk][xk]
+			if list:
+				for j in list:
+					i=self.ObjectList[j]
+					if x>i.rx-10 and x<i.rx+10 and y>i.ry-10 and y<i.ry+10:
+						self.FlagInsideHotPoint=True
+					if x>i.rx and x<i.rx+i.w and y>i.ry and y<i.ry+i.h:
+						self.FlagInsideObj=True
+					if self.FlagInsideHotPoint==True and self.FlagInsideObj==True:
+						self.FlagInsideHotPoint=False
+					if self.FlagInsideHotPoint==True or self.FlagInsideObj==True:
+						break
+			if self.FlagInsideHotPoint==True or self.FlagInsideObj==True:
+				return self.ObjectList.index(i)
 		return -1
-
-def ConvertEvent(e):
-	EVENT=-1
-	x,y,delta_x,delta_y=0,0,0,0
-	if e.type==MOUSEBUTTONDOWN:
-		if e.dict['button']==3:
-			EVENT=M_RIGHT_DOWN
-		elif e.dict['button']==1:
-			EVENT=M_LEFT_DOWN
-		elif e.dict['button']==2:
-			EVENT=M_MIDDLE_DOWN
-	elif e.type==MOUSEBUTTONUP:
-		if e.dict['button']==3:
-			EVENT=M_RIGHT_UP
-		elif e.dict['button']==2:
-			EVENT=M_MIDDLE_UP
-		elif e.dict['button']==1:
-			EVENT=M_LEFT_UP
-	elif e.type==MOUSEMOTION:
-		EVENT=M_MOVE
-	elif e.type==KEYDOWN:
-		EVENT=K_PRESS
-	elif e.type==QUIT:
-		EVENT=QUIT
-	if EVENT==M_MOVE:
-		delta_x=e.dict['rel'][0]
-		delta_y=e.dict['rel'][1]
-	if EVENT in range(1,6):
-		
-		x=e.dict['pos'][0]
-		y=e.dict['pos'][1]
-		
-	
-	return EVENT,x,y,delta_x,delta_y,e
-
-
-def FindPlaceCursorPartA(x,y,a,mymap):
-	left=x-(a.rx-mymap.Rel_x)-2
-	top=y-(a.ry-mymap.Rel_y)-2
-	return left,top
-
-def FindPlaceCursorPartB(left,top,a,mymap):
-	DrawCursor(a,wh,mymap)
-	if a.text!=['']:
-		a.soft_y=top/17 # с У все верно вроде
-		global count3
-		w3=0
-		if len(a.text)-1>=a.soft_y:
-			w=GetTextWidth(a.text[a.soft_y])# ошибка как может быть soft_y>0 ?
-			if w>left:# если курсор стал в конце строки то ставим курсор после последнего символа
-				avr=w/len(a.text[a.soft_y])
-				guess=left/avr
-				w2=GetTextWidth(a.text[a.soft_y][:guess])
-				begin=True
-				if w2<left:
-					while begin:
-						guess+=1
-						min=w2
-						w2=GetTextWidth(a.text[a.soft_y][:guess])# Сравняется ли min и w2 после этого вычисления?
-						if w2>left:
-							res=(guess-1,guess,min,w2)
-							begin=False
-				elif w2>left:
-					if left>GetTextWidth(a.text[a.soft_y][:1]):
-						while begin:
-							guess+=-1# уменьшаем или увеличиваем
-							max=w2
-							w2=GetTextWidth(a.text[a.soft_y][:guess])
-							if w2<left:
-								res=(guess,guess+1,w2,max)
-								begin=False
-						else:
-							pass
-				else:#если равно и точно попали - сразу нашли нужное значение (случайно например)
-					pass
-				if left>GetTextWidth(a.text[a.soft_y][:1]):
-					if w2!=left:
-						dx1=left-res[0]
-						dx2=res[1]-left
-						if dx1>dx2:# ближе налево выбираем лево
-							a.soft_x=res[0]
-							mymap.CursorOffset=res[2]
-						elif dx1<dx2:#ближе направо выбираем право
-							a.soft_x=res[1]
-							mymap.CursorOffset=res[3]
-						else:#если одинаково - нужно выбрать либо влево либо вправо случайно либо одинаково всегда лучше вправо
-							a.soft_x=res[1]
-							mymap.CursorOffset=res[3]
-					else:
-						a.soft_x=guess
-						mymap.CursorOffset=w2
+	def GetObject2(self,x,y):# без рендер
+		# print "GetObject"
+		x=x+self.Rel_x
+		y=y+self.Rel_y
+		yk=y/64
+		xk=x/64
+		self.FlagInsideHotPoint=False
+		self.FlagInsideObj=False
+		if self.IsCellExist(yk,xk):
+			list=self.MapList[yk][xk]
+			
+			if list:
+				for j in list:
+					i=self.ObjectList[j]
+					if x>i.rx and x<i.rx+i.w and y>i.ry and y<i.ry+i.h:
+						self.FlagInsideObj=True
+					if self.FlagInsideObj==True:
+						break
+			if self.FlagInsideObj==True:
+				return self.ObjectList.index(i)
+		return -1
+	def GetObjectUnder(self,x,y):
+		x=x+self.Rel_x
+		y=y+self.Rel_y
+		yk=y/64
+		xk=x/64
+		# может и не быть таких ячеек, проверить!
+		flag=False
+		list1=[]
+		list=[]
+		curObj=self.Focus
+		curObj1=self.ObjectList.index(curObj)
+		x1=curObj.rx-10
+		x2=curObj.rx+curObj.w
+		y1=curObj.ry-10
+		y2=curObj.ry+curObj.h
+		R1=Rect((x1,y1,x2-x1,y2-y1))
+		for k in range(len(curObj.ConsistList)):
+			yk=curObj.ConsistList[k][0]
+			xk=curObj.ConsistList[k][1]
+			list=self.MapList[yk][xk][:]
+			if curObj1 in list:
+				list.remove(curObj1)
+			if list:
+				for j in list:
+					i=self.ObjectList[j]
+					x1=i.rx-10
+					x2=i.rx+i.w
+					y1=i.ry-10
+					y2=i.ry+i.h
+					R2=Rect((x1,y1,x2-x1,y2-y1))
+					if R1.colliderect(R2):
+						if i!=curObj1:
+							result=self.ObjectList.index(i)
+							if result not in list1:
+								list1.append(result)
 						
-				else:
-					a.soft_x=0
-					mymap.CursorOffset=0
-				
-			else:# Если ширина всей строки равна или меньше отступа то ставим курсор в конец этой строки
-				a.soft_x=len(a.text[a.soft_y])
-				mymap.CursorOffset=w
-	else:# Если нет текста. А если нет текста в линии? 
-		a.soft_x=0
-		a.soft_y=0
-	if a.soft_y<0:
-		a.soft_y=0
-	if a.soft_y>len(a.text):
-		a.soft_y=len(a.text)
-
-
-def FindPlaceCursorPartB2(left,top,a,mymap):
-	DrawCursor(a,wh,mymap)
-	if a.text!=['']:
-		a.soft_y=top/17 # с У все верно вроде
-		global count3
-		w3=0
-		if len(a.text)-1>=a.soft_y:
-			w=GetTextWidth(a.text[a.soft_y])# ошибка как может быть soft_y>0 ?
-			if w>left:
-				for i in range(0,len(a.text[a.soft_y])):# Перебираем всю строку
-					w4=GetTextWidth(a.text[a.soft_y][i-1:i])# ширина одного символа
-					w3+=w4# сумма ширин символов от начала строки - замена w
-					w1=w3-w4# Сумма от начала строки до прошлого символа
-					w1=GetTextWidth(a.text[a.soft_y][:i-1])
-					w5=w3-1
-					if w5>left:
-						dx1=w5-left
-						dx2=left-w1
-						if dx1>dx2:
-							a.soft_x=i-1
-							mymap.CursorOffset=w1
-						elif dx1<dx2:
-							a.soft_x=i
-							mymap.CursorOffset=w5
+		if len(list1)>0:
+			return list1
+			
+		else:
+			return -1
+	def FindPlaceCursorPartA(self,x,y,a):
+		left=x-(a.rx-self.Rel_x)-2
+		top=y-(a.ry-self.Rel_y)-2
+		return left,top
+	def FindPlaceCursorPartB(self,left,top,a):
+		self.DrawCursor(a,wh)
+		if a.text!=['']:
+			a.soft_y=top/17 # с У все верно вроде
+			global count3
+			w3=0
+			if len(a.text)-1>=a.soft_y:
+				w=self.GetTextWidth(a.text[a.soft_y])# ошибка как может быть soft_y>0 ?
+				if w>left:# если курсор стал в конце строки то ставим курсор после последнего символа
+					avr=w/len(a.text[a.soft_y])
+					guess=left/avr
+					w2=self.GetTextWidth(a.text[a.soft_y][:guess])
+					begin=True
+					if w2<left:
+						while begin:
+							guess+=1
+							min=w2
+							w2=self.GetTextWidth(a.text[a.soft_y][:guess])# Сравняется ли min и w2 после этого вычисления?
+							if w2>left:
+								res=(guess-1,guess,min,w2)
+								begin=False
+					elif w2>left:
+						if left>self.GetTextWidth(a.text[a.soft_y][:1]):
+							while begin:
+								guess+=-1# уменьшаем или увеличиваем
+								max=w2
+								w2=self.GetTextWidth(a.text[a.soft_y][:guess])
+								if w2<left:
+									res=(guess,guess+1,w2,max)
+									begin=False
+							else:
+								pass
+					else:#если равно и точно попали - сразу нашли нужное значение (случайно например)
+						pass
+					if left>self.GetTextWidth(a.text[a.soft_y][:1]):
+						if w2!=left:
+							dx1=left-res[0]
+							dx2=res[1]-left
+							if dx1>dx2:# ближе налево выбираем лево
+								a.soft_x=res[0]
+								self.CursorOffset=res[2]
+							elif dx1<dx2:#ближе направо выбираем право
+								a.soft_x=res[1]
+								self.CursorOffset=res[3]
+							else:#если одинаково - нужно выбрать либо влево либо вправо случайно либо одинаково всегда лучше вправо
+								a.soft_x=res[1]
+								self.CursorOffset=res[3]
 						else:
-							a.soft_x=i-1
-							mymap.CursorOffset=w1
-						break
-					elif w5==left:
-						a.soft_x=i
-						mymap.CursorOffset=w5
-						break
-			else:# Если линия такая же или меньше
-				a.soft_x=len(a.text[a.soft_y])
-	else:# Если нет текста. А если нет текста в линии? 
-		a.soft_x=0
-		a.soft_y=0
-def GetRect(x1,y1,x2,y2):
-	w=max(x1,x2)-min(x1,x2)
-	h=max(y1,y2)-min(y1,y2)
-	r=Rect(min(x1,x2),min(y1,y2),w,h)
-	return r
-
-def DispatchEvent(mymap,e):
-	if e.type==KEYDOWN:
-		if e.key==K_ESCAPE:
-			mymap.ID=5
-			TakeBackground2(mymap)
-			mymap.FormFlag=True
-	if e.type==QUIT:
-		mymap.ID=5
-		TakeBackground2(mymap)
-		mymap.FormFlag=True
-	if mymap.FormFlag:
-		return mymap
-	EVENT,x,y,delta_x,delta_y,e=ConvertEvent(e)
-	iwant3=True# СЕКЦИЯ ДЛЯ ВРЕМЕННОГО СКРЫТИЯ ТЕКСТА ПРОГРАММЫ
-	if iwant3:# РЕАКЦИЯ НА МЕНЮ
-		mymap.ID=menu.Control(mymap,e)
-		id=mymap.ID# юудет -1 если не на меню
-		if id==2:# SAVE AS лучше
-			mymap.SaveFormLoad=True
-			TakeBackground2(mymap)
-			mymap.FormFlag=True
-		elif id==1:# Open
-			mymap.OpenFormLoad=True
-			TakeBackground2(mymap)
-			mymap.FormFlag=True
-		elif id==0:
-			mymap.MapList={}
-			mymap.ObjectList=[]
-			mymap.Rel_x=0
-			mymap.Rel_y=0
-			mymap.LinesList=[]
-			mymap.Background.fill(wh)
-			mymap.SAVEPATH=''
-			Redraw(mymap)# как понять, после какого экран сам обновится, а после какого нужно флаг менять?
-		elif id==5:
-			mymap.FlagMinimap=not mymap.FlagMinimap
-			if mymap.FlagMinimap:
-				mymap.MinimapLoad=True
-				mymap.FormFlag=True
-				mymap.ID=6
-				TakeBackground2(mymap)
-				mymap.Back.blit(mymap.Minimap,(0,768-200))
-				mymap.NeedUpdate=True
-			else:
-				sc.blit(mymap.Background,(0,0))
-				mymap.NeedUpdate=True
-	if mymap.Focus!=-1:
-		a=mymap.Focus
-	if EVENT==M_LEFT_DOWN or EVENT==M_RIGHT_DOWN:
-		obj=GetObject(x,y,mymap)
-		if obj!=-1:
-			a=mymap.ObjectList[obj]
-			TakeBackground(a,mymap)
-		if EVENT==M_LEFT_DOWN:
+							a.soft_x=guess
+							self.CursorOffset=w2
+							
+					else:
+						a.soft_x=0
+						self.CursorOffset=0
+					
+				else:# Если ширина всей строки равна или меньше отступа то ставим курсор в конец этой строки
+					a.soft_x=len(a.text[a.soft_y])
+					self.CursorOffset=w
+		else:# Если нет текста. А если нет текста в линии? 
+			a.soft_x=0
+			a.soft_y=0
+		if a.soft_y<0:
+			a.soft_y=0
+		if a.soft_y>len(a.text):
+			a.soft_y=len(a.text)
+	def GetRect(self,x1,y1,x2,y2):
+		w=max(x1,x2)-min(x1,x2)
+		h=max(y1,y2)-min(y1,y2)
+		r=Rect(min(x1,x2),min(y1,y2),w,h)
+		return r
+	def DispatchEvent(self,e):
+		if e.type==KEYDOWN:
+			if e.key==K_ESCAPE:
+				self.ID=5
+				self.TakeBackground2()
+				self.FormFlag=True
+		if e.type==QUIT:
+			self.ID=5
+			self.TakeBackground2()
+			self.FormFlag=True
+		if self.FormFlag:
+			return 
+		EVENT,x,y,delta_x,delta_y,e=self.ConvertEvent(e)
+		iwant3=True# СЕКЦИЯ ДЛЯ ВРЕМЕННОГО СКРЫТИЯ ТЕКСТА ПРОГРАММЫ
+		if iwant3:# РЕАКЦИЯ НА МЕНЮ
+			self.ID=menu.Control(self,e)
+			id=self.ID# юудет -1 если не на меню
+			if id==2:# SAVE AS лучше
+				self.SaveFormLoad=True
+				self.TakeBackground2()
+				self.FormFlag=True
+			elif id==1:# Open
+				self.OpenFormLoad=True
+				self.TakeBackground2()
+				self.FormFlag=True
+			elif id==0:
+				self.MapList={}
+				self.ObjectList=[]
+				self.Rel_x=0
+				self.Rel_y=0
+				self.LinesList=[]
+				self.Background.fill(wh)
+				self.SAVEPATH=''
+				self.Redraw()# как понять, после какого экран сам обновится, а после какого нужно флаг менять?
+			elif id==5:
+				self.FlagMinimap=not self.FlagMinimap
+				if self.FlagMinimap:
+					self.MinimapLoad=True
+					self.FormFlag=True
+					self.ID=6
+					self.TakeBackground2()
+					self.Back.blit(self.Minimap,(0,768-200))
+					self.NeedUpdate=True
+				else:
+					sc.blit(self.Background,(0,0))
+					self.NeedUpdate=True
+		if self.Focus!=-1:
+			a=self.Focus
+		if EVENT==M_LEFT_DOWN or EVENT==M_RIGHT_DOWN:
+			obj=self.GetObject(x,y)
+			if obj!=-1:
+				a=self.ObjectList[obj]
+				self.TakeBackground(a)
+			if EVENT==M_LEFT_DOWN:
+				x=e.dict['pos'][0]
+				y=e.dict['pos'][1]
+				if obj!=-1:# если есть объект
+					if self.Focus!=-1:
+						if obj!=self.ObjectList.index(self.Focus):
+							a=self.ObjectList[obj]
+							a.soft_x=0
+							a.soft_y=0
+							self.DrawObject(self.Focus)
+							self.DrawText([self.Focus])
+							self.Focus=a# МЕСТО ИЗМЕНЕНИЯ ФОКУСА
+					else:# ТУТ ФОКУС ТОТ ЖЕ САМЫЙ ЧТО И ОБЪЕКТ 
+						a=self.ObjectList[obj]
+						self.Focus=self.ObjectList[obj]
+					if self.FlagInsideHotPoint:# Для рисования линий
+						if len(self.LineList)==0:
+							self.LineList.append(obj)
+						else:
+							if self.LineList[0]!=obj:# БЕШЕНЫЙ КОСТЫЛЬ ДЛЯ РИСОВАНИЯ ЛИНИЙ
+								tmp1=(self.LineList[0],obj)
+								tmp2=(obj,self.LineList[0])
+								if tmp1 not in self.LinesList and tmp2 not in self.LinesList:
+									self.LinesList.append(tmp1)
+									self.Redraw()
+									self.LineList=[]
+								else:
+									if tmp1 in self.LinesList:
+										self.LinesList.remove(tmp1)
+									if tmp2 in self.LinesList:
+										self.LinesList.remove(tmp2)
+									self.LineList=[]
+									self.Redraw()
+					else:# Если внутри объекта - начинаем искать место для курсора - вынести в функцию?
+						left,top=self.FindPlaceCursorPartA(x,y,a)
+						self.FocusSelection=self.ObjectList.index(a)#длительная наверное операция
+						self.FindPlaceCursorPartB(left,top,a)
+						self.FlagTextSelection=True
+						self.BeginTextSelection=(a.soft_x,a.soft_y)
+						self.DrawCursor(a,bl)
+				else:# если пусто под курсором пытаемся создать
+					if y>50:# если не на меню
+						b=self.PrepareObject(x,y)#задаем параметры
+						self.TryCreateObject(b)# пытаемся создать - записать на карту и нарисовать
+			elif EVENT==M_RIGHT_DOWN:
+				if obj!=-1:# если не пусто
+					a=self.ObjectList[obj]
+					if obj not in self.ListSelection:
+						self.ListSelection=[obj]
+						self.DrawSelection(a,bl)
+					self.Focus=a
+					self.FlagTakeObj=True
+					self.ObjectForReturn=(a.rx,a.ry)
+					self.TakeBackground(a)# затратная операция - нужно выполнять только в четко расписанных случаях
+					self.EraseSurf=Surface((a.w+10,a.h+10))
+				else:
+					self.FlagTakeMap=True
+		elif EVENT==M_MIDDLE_DOWN:
 			x=e.dict['pos'][0]
 			y=e.dict['pos'][1]
-			if obj!=-1:# если есть объект
-				if mymap.Focus!=-1:
-					if obj!=mymap.ObjectList.index(mymap.Focus):
-						a=mymap.ObjectList[obj]
-						a.soft_x=0
-						a.soft_y=0
-						DrawObject(mymap.Focus,mymap)
-						DrawText([mymap.Focus],mymap)
-						mymap.Focus=a# МЕСТО ИЗМЕНЕНИЯ ФОКУСА
-				else:# ТУТ ФОКУС ТОТ ЖЕ САМЫЙ ЧТО И ОБЪЕКТ 
-					a=mymap.ObjectList[obj]
-					mymap.Focus=mymap.ObjectList[obj]
-				if mymap.FlagInsideHotPoint:# Для рисования линий
-					if len(mymap.LineList)==0:
-						mymap.LineList.append(obj)
-					else:
-						if mymap.LineList[0]!=obj:# БЕШЕНЫЙ КОСТЫЛЬ ДЛЯ РИСОВАНИЯ ЛИНИЙ
-							tmp1=(mymap.LineList[0],obj)
-							tmp2=(obj,mymap.LineList[0])
-							if tmp1 not in mymap.LinesList and tmp2 not in mymap.LinesList:
-								mymap.LinesList.append(tmp1)
-								Redraw(mymap)
-								mymap.LineList=[]
-							else:
-								if tmp1 in mymap.LinesList:
-									mymap.LinesList.remove(tmp1)
-								if tmp2 in mymap.LinesList:
-									mymap.LinesList.remove(tmp2)
-								mymap.LineList=[]
-								Redraw(mymap)
-				else:# Если внутри объекта - начинаем искать место для курсора - вынести в функцию?
-					left,top=FindPlaceCursorPartA(x,y,a,mymap)
-					mymap.FocusSelection=mymap.ObjectList.index(a)#длительная наверное операция
-					FindPlaceCursorPartB(left,top,a,mymap)
-					mymap.FlagTextSelection=True
-					mymap.BeginTextSelection=(a.soft_x,a.soft_y)
-					DrawCursor(a,bl,mymap)
-			else:# если пусто под курсором пытаемся создать
-				if y>50:# если не на меню
-					b=PrepareObject(x,y,mymap)#задаем параметры
-					mymap.TryCreateObject(b)# пытаемся создать - записать на карту и нарисовать
-		elif EVENT==M_RIGHT_DOWN:
-			if obj!=-1:# если не пусто
-				a=mymap.ObjectList[obj]
-				if obj not in mymap.ListSelection:
-					mymap.ListSelection=[obj]
-					DrawSelection(a,bl,mymap)
-				mymap.Focus=a
-				mymap.FlagTakeObj=True
-				mymap.ObjectForReturn=(a.rx,a.ry)
-				TakeBackground(a,mymap)# затратная операция - нужно выполнять только в четко расписанных случаях
-				mymap.EraseSurf=Surface((a.w+10,a.h+10))
+			self.Selection=(x,y)
+			self.FlagDrawSelection=True
+		elif EVENT==M_MIDDLE_UP:
+			self.FlagDrawSelection=False
+			x1=self.Selection[0]
+			y1=self.Selection[1]
+			x=e.dict['pos'][0]
+			y=e.dict['pos'][1]
+			x2=x
+			y2=y
+			x1=x1+self.Rel_x
+			y1=y1+self.Rel_y
+			yk1=y1/64
+			xk1=x1/64
+			x2=x2+self.Rel_x
+			y2=y2+self.Rel_y
+			yk2=y2/64
+			xk2=x2/64
+			r=GetRect(x1,y1,x2,y2)
+			BeginX=min(xk1,xk2)
+			EndX=max(xk1,xk2)
+			BeginY=min(yk1,yk2)
+			EndY=max(yk1,yk2)
+			list=[]
+			for i in range(BeginY,EndY):
+				for j in range(BeginX,EndX):
+					if self.IsCellExist(i,j):
+						for k in self.MapList[i][j]:
+							if k not in list:
+								list.append(k)
+			list2=[]
+			for i in list:
+				a=self.ObjectList[i]
+				x1=a.rx-10
+				y1=a.ry-10
+				x2=a.rx+a.w
+				y2=a.ry+a.h
+				r1=GetRect(x1,y1,x2,y2)#?
+				if r.contains(r1):
+					list2.append(i)
+			self.ListSelection=list2[:]# думал что получаю список выделенных
+			self.Redraw()
+		elif EVENT==M_LEFT_UP or EVENT==M_RIGHT_UP:
+			if EVENT==M_LEFT_UP:
+				self.FlagTextSelection=False
+			elif EVENT==M_RIGHT_UP:
+				if self.FlagTakeObj:
+					result=self.GetObjectUnder(x,y)
+					if result!=-1:
+						self.Focus.rx=self.ObjectForReturn[0]
+						self.Focus.ry=self.ObjectForReturn[1]
+						self.CorrectMap(self.Focus)
+						a=self.Focus
+						self.Redraw()
+				self.FlagTakeMap=False
+				self.FlagTakeObj=False
+		elif EVENT==K_PRESS:
+			k1=e.unicode
+			if self.Focus!=-1:
+				a=self.Focus
 			else:
-				mymap.FlagTakeMap=True
-	elif EVENT==M_MIDDLE_DOWN:
-		x=e.dict['pos'][0]
-		y=e.dict['pos'][1]
-		mymap.Selection=(x,y)
-		mymap.FlagDrawSelection=True
-	elif EVENT==M_MIDDLE_UP:
-		mymap.FlagDrawSelection=False
-		x1=mymap.Selection[0]
-		y1=mymap.Selection[1]
-		x=e.dict['pos'][0]
-		y=e.dict['pos'][1]
-		x2=x
-		y2=y
-		x1=x1+mymap.Rel_x
-		y1=y1+mymap.Rel_y
-		yk1=y1/64
-		xk1=x1/64
-		x2=x2+mymap.Rel_x
-		y2=y2+mymap.Rel_y
-		yk2=y2/64
-		xk2=x2/64
-		r=GetRect(x1,y1,x2,y2)
-		BeginX=min(xk1,xk2)
-		EndX=max(xk1,xk2)
-		BeginY=min(yk1,yk2)
-		EndY=max(yk1,yk2)
-		list=[]
-		for i in range(BeginY,EndY):
-			for j in range(BeginX,EndX):
-				if mymap.IsCellExist(i,j):
-					for k in mymap.MapList[i][j]:
-						if k not in list:
-							list.append(k)
-		list2=[]
-		for i in list:
-			a=mymap.ObjectList[i]
-			x1=a.rx-10
-			y1=a.ry-10
-			x2=a.rx+a.w
-			y2=a.ry+a.h
-			r1=GetRect(x1,y1,x2,y2)
-			if r.contains(r1):
-				list2.append(i)
-		mymap.ListSelection=list2[:]# думал что получаю список выделенных
-		Redraw(mymap)
-	elif EVENT==M_LEFT_UP or EVENT==M_RIGHT_UP:
-		if EVENT==M_LEFT_UP:
-			mymap.FlagTextSelection=False
-		elif EVENT==M_RIGHT_UP:
-			if mymap.FlagTakeObj:
-				result=GetObjectUnder(x,y,mymap)
-				if result!=-1:
-					mymap.Focus.rx=mymap.ObjectForReturn[0]
-					mymap.Focus.ry=mymap.ObjectForReturn[1]
-					CorrectMap(mymap.Focus,mymap)
-					a=mymap.Focus
-					Redraw(mymap)
-			mymap.FlagTakeMap=False
-			mymap.FlagTakeObj=False
-	elif EVENT==K_PRESS:
-		k1=e.unicode
-		if mymap.Focus!=-1:
-			a=mymap.Focus
-		else:
-			a=None
-		key_disp(a,k1,e,mymap)
-		if e.key==K_ESCAPE:
-			mymap.ID=5
-			TakeBackground2(mymap)
-			mymap.FormFlag=True # ЭТО МОЖЕТ БЫТЬ НЕВЕРНО
-	elif EVENT==M_MOVE:
-		if mymap.FlagTextSelection:
-			DrawText([a],mymap)
-			id=GetObject2(x,y,mymap)
-			if id==mymap.FocusSelection:
-				left,top=FindPlaceCursorPartA(x,y,a,mymap)
-				FindPlaceCursorPartB(left,top,a,mymap)# выход за пределы
-				mymap.EndTextSelection=(a.soft_x,a.soft_y)#
-				p1=mymap.BeginTextSelection
-				p2=mymap.EndTextSelection
-				if p1[1]>p2[1]:
-					p3=p2
-					p4=p1
-				elif p1[1]<p2[1]:
-					p3=p1
-					p4=p2
-				elif p1[1]==p2[1]:
-					if p1[0]>p2[0]:
+				a=None
+			self.key_disp(a,k1,e)
+			if e.key==K_ESCAPE:
+				self.ID=5
+				self.TakeBackground2()
+				self.FormFlag=True # ЭТО МОЖЕТ БЫТЬ НЕВЕРНО
+		elif EVENT==M_MOVE:
+			if self.FlagTextSelection:
+				self.DrawText([a])
+				id=self.GetObject2(x,y)
+				if id==self.FocusSelection:
+					left,top=self.FindPlaceCursorPartA(x,y,a)
+					self.FindPlaceCursorPartB(left,top,a)# выход за пределы
+					self.EndTextSelection=(a.soft_x,a.soft_y)#
+					p1=self.BeginTextSelection
+					p2=self.EndTextSelection
+					if p1[1]>p2[1]:
 						p3=p2
 						p4=p1
-					elif p1[0]<p2[0]:
+					elif p1[1]<p2[1]:
 						p3=p1
 						p4=p2
-					elif p1[0]==p2[0]:
-						p3=p1
-						p4=p2
-				p1=p3
-				p2=p4
-				list=[]
-				for i in range(p1[1],p2[1]+1):
-					if i<len(a.text):
-						end=len(a.text[i])
-						if p1[1]==p2[1]:# Если всё на одной линии то от минимума до максимума
-							list.append((p1[1],p1[0],p2[0]))
-							break
-						if i!=p2[1]:# есть линии ниже
-							if i==p1[1]:# если первая линия - до конца
-								list.append((i,p1[0],end))
+					elif p1[1]==p2[1]:
+						if p1[0]>p2[0]:
+							p3=p2
+							p4=p1
+						elif p1[0]<p2[0]:
+							p3=p1
+							p4=p2
+						elif p1[0]==p2[0]:
+							p3=p1
+							p4=p2
+					p1=p3
+					p2=p4
+					list=[]
+					for i in range(p1[1],p2[1]+1):
+						if i<len(a.text):
+							end=len(a.text[i])
+							if p1[1]==p2[1]:# Если всё на одной линии то от минимума до максимума
+								list.append((p1[1],p1[0],p2[0]))
+								break
+							if i!=p2[1]:# есть линии ниже
+								if i==p1[1]:# если первая линия - до конца
+									list.append((i,p1[0],end))
+								else:
+									list.append((i,0,end))
 							else:
-								list.append((i,0,end))
+								list.append((i,0,p2[0]))
+								break
+					txt=""
+					for i in list:
+						txt+=a.text[i[0]][i[1]:i[2]]+"\n"# ЧТО ЗА ОШИБКА? Это сборки строки для буфера обмена, что с ней?
+					self.Scrap=txt[:]
+					text=txt.encode('utf_16')
+					# text=txt
+					scrap.put ('text/plain;charset=utf-8', text)
+					for j in range(0,len(list)):# Выделение текста цветом
+						i=list[j]
+						text=a.text[i[0]][i[1]:i[2]]
+						if i[1]==0:
+							w=0
 						else:
-							list.append((i,0,p2[0]))
-							break
-				txt=""
-				for i in list:
-					txt+=a.text[i[0]][i[1]:i[2]]+"\n"# ЧТО ЗА ОШИБКА? Это сборки строки для буфера обмена, что с ней?
-				mymap.Scrap=txt[:]
-				text=txt.encode('utf_16')
-				scrap.put ('text/plain;charset=utf-8', text)
-				for j in range(0,len(list)):# Выделение текста цветом
-					i=list[j]
-					text=a.text[i[0]][i[1]:i[2]]
-					if i[1]==0:
-						w=0
-					else:
-						txt=a.text[i[0]][:i[1]]
-						surf=Font2.render(txt,1,fc,wh)
-						w = surf.get_width()
-						surf=None
-					text_surf=None
-					text_surf=Font2.render(text,1,fc,(12,255,255))
-					x=1+a.x+w
-					y=i[0]*17+1+a.y
-					mymap.Back.blit(text_surf,(x,y))# УМЕНЬШИТЬ В ЭТОМ МЕСТЕ
-				DrawCursor(a,bl,mymap)
-		if mymap.FlagDrawSelection:
-			x1=mymap.Selection[0]
-			y1=mymap.Selection[1]
-			mymap.EndSelection=(x1,y1)
-			Redraw(mymap)
-			draw.polygon(mymap.Back,bl,((x1,y1),(x,y1),(x,y),(x1,y)),1)
-			mymap.NeedUpdate=True
-		if mymap.FlagTakeMap:
-			mymap.Rel_x-=delta_x
-			mymap.Rel_y-=delta_y
-			Redraw(mymap)
-		if mymap.FlagTakeObj:
-			for i in mymap.ListSelection:
-				a=mymap.ObjectList[i]
-				a.rx+=delta_x
-				a.ry+=delta_y
-				CorrectMap(a,mymap)
-			Redraw(mymap)
-	return mymap
+							txt=a.text[i[0]][:i[1]]
+							surf=Font2.render(txt,1,fc,wh)
+							w = surf.get_width()
+							surf=None
+						text_surf=None
+						text_surf=Font2.render(text,1,fc,(12,255,255))
+						x=1+a.x+w
+						y=i[0]*17+1+a.y
+						self.Back.blit(text_surf,(x,y))# УМЕНЬШИТЬ В ЭТОМ МЕСТЕ
+					self.DrawCursor(a,bl)
+			if self.FlagDrawSelection:
+				x1=self.Selection[0]
+				y1=self.Selection[1]
+				self.EndSelection=(x1,y1)
+				self.Redraw()
+				draw.polygon(self.Back,bl,((x1,y1),(x,y1),(x,y),(x1,y)),1)
+				self.NeedUpdate=True
+			if self.FlagTakeMap:
+				self.Rel_x-=delta_x
+				self.Rel_y-=delta_y
+				self.Redraw()
+			if self.FlagTakeObj:
+				for i in self.ListSelection:
+					a=self.ObjectList[i]
+					a.rx+=delta_x
+					a.ry+=delta_y
+					self.CorrectMap(a)
+				self.Redraw()
+	def SaveAs(self):
+		# print "SAVEAS!"
+		self.SAVEPATH=self.PATH
+		self.QuickSave()
+		self.FlagNeedSaveAs=False
+	def ChangeBorder(self,a):# Textedit 
+		# print "ChangeBorder"
+		a.h=len(a.text)*17+4
+		a.w=a.MaxW+4
+	def ConvertEvent(self,e):
+		EVENT=-1
+		x,y,delta_x,delta_y=0,0,0,0
+		if e.type==MOUSEBUTTONDOWN:
+			if e.dict['button']==3:
+				EVENT=M_RIGHT_DOWN
+			elif e.dict['button']==1:
+				EVENT=M_LEFT_DOWN
+			elif e.dict['button']==2:
+				EVENT=M_MIDDLE_DOWN
+		elif e.type==MOUSEBUTTONUP:
+			if e.dict['button']==3:
+				EVENT=M_RIGHT_UP
+			elif e.dict['button']==2:
+				EVENT=M_MIDDLE_UP
+			elif e.dict['button']==1:
+				EVENT=M_LEFT_UP
+		elif e.type==MOUSEMOTION:
+			EVENT=M_MOVE
+		elif e.type==KEYDOWN:
+			EVENT=K_PRESS
+		elif e.type==QUIT:
+			EVENT=QUIT
+		if EVENT==M_MOVE:
+			delta_x=e.dict['rel'][0]
+			delta_y=e.dict['rel'][1]
+		if EVENT in range(1,6):
+			
+			x=e.dict['pos'][0]
+			y=e.dict['pos'][1]
+			
+		
+		return EVENT,x,y,delta_x,delta_y,e
+	def GetTextWidth(self,text):# Вычисляемое - используется для поиска положения курсора в строке путем перебора от начала строки
+		# print "GetTextWidth"
+		w = Font2.render(text,1,fc,wh).get_width()
+		return w
 
 def LoadConfig():
 	filename="config.cfg"
@@ -1467,19 +1454,6 @@ def LoadConfig():
 		if key=="loadpath":LoadPath=value[:-1].decode("utf_8")
 	f.close()
 	return Askform,LoadDefault,LoadPath
-
-def LoadAs(mymap):
-	# print "LOAD!"
-	mymap=Load(mymap.PATH)
-	mymap.FlagNeedLoad=False
-	return mymap
-
-def SaveAs(mymap):
-	# print "SAVEAS!"
-	mymap.SAVEPATH=mymap.PATH
-	mymap.QuickSave()
-	mymap.FlagNeedSaveAs=False
-
 def Load(LoadPath):
 	# print LoadPath
 	if os.path.exists(LoadPath):
@@ -1532,7 +1506,7 @@ def Load(LoadPath):
 		mymap.sc=sc
 		for i in mymap.ObjectList:
 			i.ConsistList=[]
-			CorrectMap(i,mymap)
+			mymap.CorrectMap(i)
 			if i.text==['']:
 				i.TextSurf=Surface((i.w-2,i.h-2))
 				i.TextSurf.fill(wh)
@@ -1557,72 +1531,103 @@ def Load(LoadPath):
 		f.write("loadpath:"+LoadPath.encode('utf_8')+"\n")
 		f.close()
 		list=mymap.ObjectList
-		Redraw2(list,mymap)
+		mymap.Redraw2(list)
 		mymap.CLEAR=Surface((mymap.sc.get_size()))
 		mymap.CLEAR.fill(wh)
 		mymap.Background=Surface((sc.get_size()))
+		minimap1=True
+		if minimap1:# Вынести в функцию и вызывать при загрузке файла
+			x_min,y_min,x_max,y_max=0,0,0,0
+			x_min=mymap.ObjectList[0].ConsistList[0][1]
+			y_min=mymap.ObjectList[0].ConsistList[0][0]
+			for i in mymap.ObjectList:
+				for j in i.ConsistList:
+					if j[0]>y_max:
+						y_max=j[0]
+					if j[0]<y_min:
+						y_min=j[0]
+					if j[1]>x_max:
+						x_max=j[1]
+					if j[1]<x_min:
+						x_min=j[1]
+			mymap.MinXY=(x_min,y_min)
+			x_max+=5
+			y_max+=5
+			if x_min>0:
+				x_real=(x_max-x_min)*64
+			else:
+				x_real=(abs(x_min)+abs(x_max))*64
+			if y_min>0:
+				y_real=(y_max-y_min)*64
+			else:
+				y_real=(abs(y_min)+abs(y_max))*64
+			x_koef=x_real/400.
+			y_koef=y_real/200.
+			Minimap=Surface((400,200))
+			Minimap.fill((240,240,240))
+			for i in mymap.ObjectList:
+				x1=int((i.rx-10)/x_koef)
+				x2=int((i.w+10)/x_koef)
+				y1=int((i.ry-10)/y_koef)
+				y2=int((i.h+10)/y_koef)
+				R=Rect(x1,y1,x2,y2)
+				draw.rect(Minimap, bl, R, 0)
+			mymap.Minimap=Minimap
+			mymap.KoefMinimap=(x_koef,y_koef)
 	else:
 		mymap = MyMap()
 		mymap.sc=sc
 	return mymap
 
+
+
 def main():
 	Askform,LoadDefault,LoadPath=LoadConfig()
-	print LoadPath
+	# print LoadPath
 	mymap=Load(LoadPath)
 	mymap.ListSelection=[]
-	Redraw(mymap)
-	minimap1=True
-	if minimap1:
-		x_min,y_min,x_max,y_max=0,0,0,0
-		x_min=mymap.ObjectList[0].ConsistList[0][1]
-		y_min=mymap.ObjectList[0].ConsistList[0][0]
-		for i in mymap.ObjectList:
-			for j in i.ConsistList:
-				if j[0]>y_max:
-					y_max=j[0]
-				if j[0]<y_min:
-					y_min=j[0]
-				if j[1]>x_max:
-					x_max=j[1]
-				if j[1]<x_min:
-					x_min=j[1]
-		mymap.MinXY=(x_min,y_min)
-		x_max+=5
-		y_max+=5
-		if x_min>0:
-			x_real=(x_max-x_min)*64
-		else:
-			x_real=(abs(x_min)+abs(x_max))*64
-		if y_min>0:
-			y_real=(y_max-y_min)*64
-		else:
-			y_real=(abs(y_min)+abs(y_max))*64
-		x_koef=x_real/400.
-		y_koef=y_real/200.
-		Minimap=Surface((400,200))
-		Minimap.fill((240,240,240))
-		for i in mymap.ObjectList:
-			x1=int((i.rx-10)/x_koef)
-			x2=int((i.w+10)/x_koef)
-			y1=int((i.ry-10)/y_koef)
-			y2=int((i.h+10)/y_koef)
-			R=Rect(x1,y1,x2,y2)
-			draw.rect(Minimap, bl, R, 0)
-		mymap.Minimap=Minimap
-		mymap.KoefMinimap=(x_koef,y_koef)
+	mymap.Redraw()
 	going=True
+	t1=time.clock()
+	t3=0
+	t4=0
 	while going:
+		"""
+		отсчет времени,
+		накапливать время
+		первый замер
+		второй показывает время между двумя замерами
+		если времени прошло мало, меньше чем задумано,
+		то прибавляем ещё несколько раз, циклов
+		обнуляем если сравнялось
+		считаем заново
+		
+		
+		"""
+		anim=True
+		if anim:
+			t2=time.clock()
+			t3+=t2
+			# print t3
+			if t3>400 and t4<30:
+				animobj=mymap.ObjectList[-2]
+				animobj.rx+=2
+				animobj.ry+=2
+				t1=time.clock()
+				mymap.Redraw()
+				t3=0
+				t4+=1
+			
 		if mymap.NeedUpdate:
 			mymap.sc.blit(mymap.Back,(0,0))
-			display.update()
+			display.flip()
 			mymap.NeedUpdate=False
 		if mymap.FlagNeedLoad==True:
 			mymap=Load(mymap.PATH)
-			Redraw(mymap)
+			mymap.Redraw()
 			mymap.ID=-1
 		if mymap.FlagNeedSaveAs:
-			SaveAs(mymap)
+			mymap.SaveAs()
 			mymap.ID=-1
 		mymap.FlagNeedSaveAs=False
 		mymap.FlagNeedLoad=False
@@ -1639,7 +1644,7 @@ def main():
 		if going:
 			e=event.poll()
 			if mymap.FormFlag==False:
-				mymap=DispatchEvent(mymap,e)# это один объект а внутри другой и они не возвращаются?
+				mymap.DispatchEvent(e)# это один объект а внутри другой и они не возвращаются?
 			else:
 				if mymap.ID==1:
 					mymap=openform.dispatcher(mymap,e)

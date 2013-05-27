@@ -4,7 +4,7 @@ import work01
 import menu
 def quit(mymap):
 	
-	work01.TakeBackground2(mymap)
+	mymap.TakeBackground2()
 	mymap.Back.blit(mymap.Background,(0,0))
 	mymap.Back.blit(menu.menu.MainSurf,(menu.menu.position))
 
@@ -46,7 +46,7 @@ def control(mymap,e):
 				new_y=int(ky*y1/64-min_y)
 				mymap.Rel_x=new_x*64
 				mymap.Rel_y=new_y*64
-				work01.Redraw(mymap)
+				mymap.Redraw()#?
 				mymap.Back.blit(mymap.Minimap,(0,768-200))
 				mymap.NeedUpdate=True
 	if e.type==KEYDOWN:
